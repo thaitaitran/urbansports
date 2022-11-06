@@ -18,7 +18,7 @@ class CheckInPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => TimerCubit(ticker: const Ticker()),
+      create: (_) => TimerCubit(ticker: const Ticker())..startTimer(),
       child: const CheckInView(),
     );
   }
