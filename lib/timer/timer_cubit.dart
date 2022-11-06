@@ -2,22 +2,34 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import './ticker.dart';
+import 'package:equatable/equatable.dart';
 
-class TimerCubit extends Cubit<DateTime> {
-  TimerCubit() : super(DateTime.now());
+class TimerState extends Equatable {
+  const TimerState({required this.checkIn, required this.checkedInSeconds});
+  final DateTime checkIn;
+  final int checkedInSeconds;
 
-  void reset() => emit(DateTime.now());
+  TimerState copyWith({required int seconds}) {
+    return TimerState(checkIn: checkIn, checkedInSeconds: seconds);
+  }
+
+  @override
+  List<Object> get props => [checkIn, checkedInSeconds];
 }
 
-class DurationCubit extends Cubit<Duration> {
-  DurationCubit() : super(const Duration(seconds: 0));
-  final Ticker ticker = const Ticker();
-
-  StreamSubscription<Duration>? _tickerSubscription;
+class TimerCubit extends Cubit<TimerState> {
+  final Ticker _ticker;
+  StreamSubscription<int>? _tickerSubscription;
+  TimerCubit({required Ticker ticker})
+      : _ticker = ticker,
+        super(TimerState(checkIn: DateTime.now(), checkedInSeconds: 0));
 
   void startTimer() {
+    emit(TimerState(checkIn: DateTime.now(), checkedInSeconds: 0));
     _tickerSubscription?.cancel();
-    _tickerSubscription =
-        ticker.tick(DateTime.now()).listen((event) => emit(event));
+    _tickerSubscription = _ticker.tick().listen((_) {
+      final now = DateTime.now();
+      emit(state.copyWith(seconds: now.difference(state.checkIn).inSeconds));
+    });
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:urban_sports/timer/timer_cubit.dart';
 import 'package:intl/intl.dart';
+import './timer/ticker.dart';
 
 void main() {
   runApp(const App());
@@ -17,11 +18,8 @@ class CheckInPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => DurationCubit(),
-      child: BlocProvider(
-        create: (_) => TimerCubit(),
-        child: const CheckInView(),
-      ),
+      create: (_) => TimerCubit(ticker: const Ticker()),
+      child: const CheckInView(),
     );
   }
 }
@@ -41,9 +39,9 @@ class CheckInView extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  BlocBuilder<DurationCubit, Duration>(
+                  BlocBuilder<TimerCubit, TimerState>(
                     builder: (context, state) {
-                      return Timer(seconds: state.inSeconds);
+                      return Timer(seconds: state.checkedInSeconds);
                     },
                   ),
                   const SizedBox(
@@ -105,10 +103,7 @@ class CheckInView extends StatelessWidget {
                           fixedSize: const Size(double.maxFinite, 45),
                           side: const BorderSide(
                               color: Color.fromARGB(255, 35, 116, 209))),
-                      onPressed: () {
-                        context.read<TimerCubit>().reset();
-                        context.read<DurationCubit>().startTimer();
-                      },
+                      onPressed: () => context.read<TimerCubit>().startTimer(),
                       child: const Text(
                         'Share this check-in',
                         style: TextStyle(
@@ -184,9 +179,9 @@ class FitnessInfo extends StatelessWidget {
             fontSize: 15.0,
           ),
         ),
-        BlocBuilder<TimerCubit, DateTime>(
+        BlocBuilder<TimerCubit, TimerState>(
           builder: (context, state) {
-            return Text(DateFormat('dd MMM, kk:mm').format(state));
+            return Text(DateFormat('dd MMM, kk:mm').format(state.checkIn));
           },
         ),
         Row(
