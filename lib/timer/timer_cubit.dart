@@ -5,7 +5,7 @@ import './ticker.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class TimerState extends Equatable {
-  const TimerState({required this.checkIn, required this.checkedInSeconds});
+  const TimerState(this.checkIn, this.checkedInSeconds);
   final DateTime checkIn;
   final int checkedInSeconds;
 
@@ -14,12 +14,11 @@ abstract class TimerState extends Equatable {
 }
 
 class TimerInitial extends TimerState {
-  TimerInitial() : super(checkIn: DateTime.now(), checkedInSeconds: 0);
+  TimerInitial() : super(DateTime.now(), 0);
 }
 
 class TimerRunning extends TimerState {
-  const TimerRunning(checkIn, checkedInSeconds)
-      : super(checkIn: checkIn, checkedInSeconds: checkedInSeconds);
+  const TimerRunning(super.checkIn, super.checkedInSeconds);
 }
 
 class TimerCubit extends Cubit<TimerState> {
