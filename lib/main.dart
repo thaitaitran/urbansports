@@ -179,9 +179,10 @@ class FitnessInfo extends StatelessWidget {
             fontSize: 15.0,
           ),
         ),
-        BlocBuilder<TimerCubit, TimerState>(
-          builder: (context, state) {
-            return Text(DateFormat('dd MMM, kk:mm').format(state.checkIn));
+        BlocSelector<TimerCubit, TimerState, DateTime>(
+          selector: (state) => state.checkIn,
+          builder: (context, checkIn) {
+            return Text(DateFormat('dd MMM, kk:mm').format(checkIn));
           },
         ),
         Row(
