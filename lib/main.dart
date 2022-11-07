@@ -24,8 +24,99 @@ class CheckInPage extends StatelessWidget {
   }
 }
 
-class CheckInView extends StatelessWidget {
+class CheckInView extends StatefulWidget {
   const CheckInView({super.key});
+
+  @override
+  _CheckInViewState createState() => _CheckInViewState();
+}
+
+class _CheckInViewState extends State<CheckInView> {
+  String name = "Hai Dang Bui";
+  String membershipText = "M Membership No: 529249000";
+  String dialogName = "";
+  String dialogMembershipType = "M";
+  String dialogMembershipNumber = "529249000";
+
+  late TextEditingController _nameFieldController;
+  late TextEditingController _numberFieldController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameFieldController = TextEditingController(text: dialogName);
+    _numberFieldController =
+        TextEditingController(text: dialogMembershipNumber);
+  }
+
+  // Short Dialog enabling textmodification
+  Future<void> _displayTextInputDialog(BuildContext context) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      dialogName = value;
+                    });
+                  },
+                  controller: _nameFieldController,
+                  decoration: const InputDecoration(hintText: "Name"),
+                ),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                        child: DropdownButton(
+                            value: dialogMembershipType,
+                            items: const [
+                              DropdownMenuItem(value: "S", child: Text("S")),
+                              DropdownMenuItem(value: "M", child: Text("M")),
+                              DropdownMenuItem(value: "L", child: Text("L")),
+                              DropdownMenuItem(value: "XL", child: Text("XL")),
+                            ],
+                            onChanged: (value) {
+                              setState(() {
+                                dialogMembershipType = value!;
+                              });
+                            })),
+                    Expanded(
+                      child: TextField(
+                        onChanged: (value) {
+                          setState(() {
+                            dialogMembershipNumber = value;
+                          });
+                        },
+                        controller: _numberFieldController,
+                        decoration: const InputDecoration(
+                            hintText: "Membership Number"),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            actions: <Widget>[
+              Center(
+                child: TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    setState(() {
+                      name = dialogName;
+                      membershipText =
+                          "$dialogMembershipType Membership No: $dialogMembershipNumber";
+                      Navigator.pop(context);
+                    });
+                  },
+                ),
+              )
+            ],
+          );
+        });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,24 +138,33 @@ class CheckInView extends StatelessWidget {
                   const SizedBox(
                     height: 7,
                   ),
-                  const Text(
-                    'Hai Dang Bui',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 23,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: 'Calibri'),
-                  ),
-                  const SizedBox(
-                    height: 2,
-                  ),
-                  const Text(
-                    'M Membership No: 529249000',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
+                  GestureDetector(
+                    onLongPress: () async {
+                      await _displayTextInputDialog(context);
+                    },
+                    child: Column(
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 23,
+                              fontWeight: FontWeight.w700,
+                              fontFamily: 'Calibri'),
+                        ),
+                        const SizedBox(
+                          height: 2,
+                        ),
+                        Text(
+                          membershipText,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        )
+                      ],
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -119,6 +219,8 @@ class CheckInView extends StatelessWidget {
     );
   }
 }
+
+// Flutter Dialog with 3 TextFields
 
 class Timer extends StatelessWidget {
   const Timer({
