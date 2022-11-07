@@ -33,8 +33,8 @@ class TimerCubit extends Cubit<TimerState> {
     _tickerSubscription?.cancel();
     _tickerSubscription = _ticker.tick().listen((_) {
       final now = DateTime.now();
-      emit(
-          TimerRunning(state.checkIn, now.difference(state.checkIn).inSeconds));
+      final checkedInTime = now.difference(state.checkIn).inSeconds;
+      emit(TimerRunning(state.checkIn, checkedInTime));
     });
   }
 }
