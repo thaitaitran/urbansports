@@ -39,5 +39,7 @@ class MemberInfoMembershipNumberChanged extends MemberInfoEvent {
 }
 
 class MemberInfoSubmitted extends MemberInfoEvent {
-  const MemberInfoSubmitted();
+  const MemberInfoSubmitted(this.tshirtSize);
+
+  final String tshirtSize;
 }
