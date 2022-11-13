@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:urban_sports/timer/timer_cubit.dart';
-import 'package:intl/intl.dart';
-import './timer/ticker.dart';
+import 'member_info/member_info.dart';
+import 'studio_info/studio_info.dart';
+import 'timer/timer.dart';
 
 void main() {
   runApp(const App());
@@ -15,22 +15,106 @@ class App extends MaterialApp {
 class CheckInPage extends StatelessWidget {
   const CheckInPage({super.key});
 
+  final name = 'Hai Dang Bui';
+  final tShirtSize = 'M';
+  final membershipNumber = '529249000';
+
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => TimerCubit(ticker: const Ticker()),
-      child: const CheckInView(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => TimerCubit(ticker: const Ticker())..startTimer(),
+        ),
+        BlocProvider(
+            create: (_) => MemberInfoBloc(
+                name: name,
+                tshirtSize: tShirtSize,
+                membershipNumber: membershipNumber)),
+      ],
+      child: BlocListener<MemberInfoBloc, MemberInfoState>(
+        listener: (context, state) {
+          if (state.editable) {
+            showDialog<void>(
+              context: context,
+              builder: (_) {
+                return BlocProvider.value(
+                  value: context.watch<MemberInfoBloc>(),
+                  child: const MemberInfoDialog(),
+                );
+              },
+            );
+          }
+          if (!state.editable) {
+            Navigator.of(context).pop();
+          }
+        },
+        child: const CheckInView(),
+      ),
     );
   }
 }
 
-class CheckInView extends StatefulWidget {
-  const CheckInView({super.key});
+class MemberInfoDialog extends StatelessWidget {
+  const MemberInfoDialog({super.key});
 
   @override
-  _CheckInViewState createState() => _CheckInViewState();
+  Widget build(BuildContext context) {
+    final memberInfoState = context.watch<MemberInfoBloc>().state;
+
+    return AlertDialog(
+      title: const Text('Configure Member Data'),
+      content: Row(
+        children: <Widget>[
+          Expanded(
+              child: DropdownButton(
+            value: memberInfoState.tshirtSize,
+            items: const [
+              DropdownMenuItem(value: "S", child: Text("S")),
+              DropdownMenuItem(value: "M", child: Text("M")),
+              DropdownMenuItem(value: "L", child: Text("L")),
+              DropdownMenuItem(value: "XL", child: Text("XL")),
+            ],
+            onChanged: (value) {
+              context
+                  .read<MemberInfoBloc>()
+                  .add(MemberInfoMembershipNumberChanged(value!));
+            },
+          )),
+          Expanded(
+            child: TextField(
+              onChanged: (value) {},
+              //controller: _numberFieldController,
+              decoration: const InputDecoration(hintText: "Membership Number"),
+            ),
+          ),
+        ],
+      ),
+      actions: <Widget>[
+        TextButton(
+          style: TextButton.styleFrom(
+            textStyle: Theme.of(context).textTheme.labelLarge,
+          ),
+          child: const Text('Cancel'),
+          onPressed: () {
+            context.read<MemberInfoBloc>().add(const MemberInfoSubmitted());
+          },
+        ),
+        TextButton(
+          style: TextButton.styleFrom(
+            textStyle: Theme.of(context).textTheme.labelLarge,
+          ),
+          child: const Text('Submit'),
+          onPressed: () {
+            context.read<MemberInfoBloc>().add(const MemberInfoSubmitted());
+          },
+        ),
+      ],
+    );
+  }
 }
 
+/*
 class _CheckInViewState extends State<CheckInView> {
   String name = "Hai Dang Bui";
   String membershipText = "M Membership No: 529249000";
@@ -117,6 +201,10 @@ class _CheckInViewState extends State<CheckInView> {
           );
         });
   }
+*/
+
+class CheckInView extends StatelessWidget {
+  const CheckInView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -138,33 +226,7 @@ class _CheckInViewState extends State<CheckInView> {
                   const SizedBox(
                     height: 7,
                   ),
-                  GestureDetector(
-                    onLongPress: () async {
-                      await _displayTextInputDialog(context);
-                    },
-                    child: Column(
-                      children: [
-                        Text(
-                          name,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 23,
-                              fontWeight: FontWeight.w700,
-                              fontFamily: 'Calibri'),
-                        ),
-                        const SizedBox(
-                          height: 2,
-                        ),
-                        Text(
-                          membershipText,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
+                  const MemberInfo(),
                 ],
               ),
             ),
@@ -175,41 +237,16 @@ class _CheckInViewState extends State<CheckInView> {
               margin: const EdgeInsets.all(15.0),
               color: Colors.white,
               child: Column(
-                children: [
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: const [
-                        StudioImg(),
-                        SizedBox(
-                          width: 15,
-                        ),
-                        Expanded(
-                          child: FitnessInfo(),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Padding(
+                children: const [
+                  FitnessInfo(),
+                  Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
                     child: Divider(
                       thickness: 1.2,
                       color: Color.fromRGBO(240, 240, 240, 1),
                     ),
                   ),
-                  OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          fixedSize: const Size(double.maxFinite, 45),
-                          side: const BorderSide(
-                              color: Color.fromARGB(255, 35, 116, 209))),
-                      onPressed: () => context.read<TimerCubit>().startTimer(),
-                      child: const Text(
-                        'Share this check-in',
-                        style: TextStyle(
-                            color: Color.fromARGB(255, 35, 116, 209),
-                            fontSize: 17),
-                      )),
+                  ShareCheckInButton(),
                 ],
               ),
             ),
@@ -220,126 +257,23 @@ class _CheckInViewState extends State<CheckInView> {
   }
 }
 
-// Flutter Dialog with 3 TextFields
-
-class Timer extends StatelessWidget {
-  const Timer({
-    required this.seconds,
-    Key? key,
-  }) : super(key: key);
-
-  final int seconds;
-
-  @override
-  Widget build(BuildContext context) {
-    final minutesStr = ((seconds / 60) % 60).floor().toString().padLeft(2, '0');
-    final secondStr = (seconds % 60).floor().toString().padLeft(2, '0');
-
-    return Text(
-      'Checked in: $minutesStr:$secondStr minutes ago',
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 15,
-      ),
-    );
-  }
-}
-
-class StudioImg extends StatelessWidget {
-  const StudioImg({
+class ShareCheckInButton extends StatelessWidget {
+  const ShareCheckInButton({
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 80,
-      height: 80,
-      child: Image.asset(
-        'assets/img/fitnessfirst.png',
-        fit: BoxFit.cover,
-      ),
-    );
-  }
-}
-
-class FitnessInfo extends StatelessWidget {
-  const FitnessInfo({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Fitness',
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 15.0,
-          ),
-        ),
-        BlocSelector<TimerCubit, TimerState, DateTime>(
-          selector: (state) => state.checkIn,
-          builder: (context, checkIn) {
-            return Text(DateFormat('dd MMM, kk:mm').format(checkIn));
-          },
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            IconTile(
-              icon: Icons.room,
-              text: 'Crunch Fit Berlin-Wedding',
-              iconColor: Color.fromRGBO(155, 155, 155, 1),
-            ),
-            Spacer(),
-            Text(
-              '(Wedding)',
-              style: TextStyle(fontSize: 12),
-            ),
-          ],
-        ),
-        const IconTile(
-          icon: Icons.sell,
-          text: 'Fitness',
-        ),
-      ],
-    );
-  }
-}
-
-class IconTile extends StatelessWidget {
-  const IconTile({
-    super.key,
-    required this.icon,
-    this.iconColor,
-    required this.text,
-  });
-
-  final IconData icon;
-  final Color? iconColor;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 12,
-          color: iconColor ?? const Color.fromRGBO(77, 77, 77, 1),
-        ),
-        const SizedBox(
-          width: 5,
-        ),
-        Text(
-          text,
-          style: const TextStyle(fontSize: 12),
-        ),
-      ],
-    );
+    return OutlinedButton(
+        style: OutlinedButton.styleFrom(
+            padding: EdgeInsets.zero,
+            fixedSize: const Size(double.maxFinite, 45),
+            side: const BorderSide(color: Color.fromARGB(255, 35, 116, 209))),
+        onPressed: () => context.read<TimerCubit>().startTimer(),
+        child: const Text(
+          'Share this check-in',
+          style:
+              TextStyle(color: Color.fromARGB(255, 35, 116, 209), fontSize: 17),
+        ));
   }
 }
