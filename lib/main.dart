@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:urban_sports/timer/timer_cubit.dart';
 import 'package:intl/intl.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
 import './timer/ticker.dart';
 
 void main() {
@@ -34,40 +35,9 @@ class CheckInView extends StatelessWidget {
         children: [
           Expanded(
             child: Container(
-              width: double.infinity,
-              color: const Color.fromRGBO(107, 188, 135, 1),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  BlocBuilder<TimerCubit, TimerState>(
-                    builder: (context, state) {
-                      return Timer(seconds: state.checkedInSeconds);
-                    },
-                  ),
-                  const SizedBox(
-                    height: 7,
-                  ),
-                  const Text(
-                    'Hai Dang Bui',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 23,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: 'Calibri'),
-                  ),
-                  const SizedBox(
-                    height: 2,
-                  ),
-                  const Text(
-                    'M Membership No: 529249000',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                    ),
-                  )
-                ],
-              ),
-            ),
+                width: double.infinity,
+                color: const Color.fromRGBO(107, 188, 135, 1),
+                child: MemberInfo()),
           ),
           Container(
             color: Colors.white,
@@ -76,20 +46,7 @@ class CheckInView extends StatelessWidget {
               color: Colors.white,
               child: Column(
                 children: [
-                  IntrinsicHeight(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: const [
-                        StudioImg(),
-                        SizedBox(
-                          width: 15,
-                        ),
-                        Expanded(
-                          child: FitnessInfo(),
-                        ),
-                      ],
-                    ),
-                  ),
+                  StudioInfo(),
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
                     child: Divider(
@@ -143,68 +100,158 @@ class Timer extends StatelessWidget {
   }
 }
 
-class StudioImg extends StatelessWidget {
-  const StudioImg({
-    Key? key,
-  }) : super(key: key);
+class MemberInfo extends StatefulWidget {
+  const MemberInfo({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 80,
-      height: 80,
-      child: Image.asset(
-        'assets/img/fitnessfirst.png',
-        fit: BoxFit.cover,
-      ),
-    );
-  }
+  State<MemberInfo> createState() => _MemberInfoState();
 }
 
-class FitnessInfo extends StatelessWidget {
-  const FitnessInfo({
-    Key? key,
-  }) : super(key: key);
+class _MemberInfoState extends State<MemberInfo> {
+  // QR Reader
+  Barcode? result;
+  QRViewController? controller;
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
-          'Fitness',
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 15.0,
+        Container(
+          height: 300,
+          width: 300,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.black,
+              width: 2,
+            ),
           ),
+          child: Center(
+              child: result == null
+                  ? QRView(
+                      key: qrKey,
+                      onQRViewCreated: _onQRViewCreated,
+                    )
+                  : Text(result!.code!)),
         ),
-        BlocSelector<TimerCubit, TimerState, DateTime>(
-          selector: (state) => state.checkIn,
-          builder: (context, checkIn) {
-            return Text(DateFormat('dd MMM, kk:mm').format(checkIn));
+        BlocBuilder<TimerCubit, TimerState>(
+          builder: (context, state) {
+            return Timer(seconds: state.checkedInSeconds);
           },
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            IconTile(
-              icon: Icons.room,
-              text: 'Crunch Fit Berlin-Wedding',
-              iconColor: Color.fromRGBO(155, 155, 155, 1),
-            ),
-            Spacer(),
-            Text(
-              '(Wedding)',
-              style: TextStyle(fontSize: 12),
-            ),
-          ],
+        const SizedBox(
+          height: 7,
         ),
-        const IconTile(
-          icon: Icons.sell,
-          text: 'Fitness',
+        const Text(
+          'Hai Dang Bui',
+          style: TextStyle(
+              color: Colors.white,
+              fontSize: 23,
+              fontWeight: FontWeight.w700,
+              fontFamily: 'Calibri'),
         ),
+        const SizedBox(
+          height: 2,
+        ),
+        const Text(
+          'M Membership No: 529249000',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+          ),
+        )
       ],
+    );
+  }
+
+  void _onQRViewCreated(QRViewController controller) {
+    this.controller = controller;
+    controller.scannedDataStream.listen((scanData) async {
+      setState(() {
+        isLoading = true;
+        result = scanData;
+        isLoading = false;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
+  }
+}
+
+class StudioInfo extends StatefulWidget {
+  const StudioInfo({super.key});
+
+  @override
+  State<StudioInfo> createState() => _StudioInfoState();
+}
+
+class _StudioInfoState extends State<StudioInfo> {
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: 80,
+            height: 80,
+            child: Image.asset(
+              'assets/img/fitnessfirst.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          SizedBox(
+            width: 15,
+          ),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Fitness',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 15.0,
+                  ),
+                ),
+                BlocSelector<TimerCubit, TimerState, DateTime>(
+                  selector: (state) => state.checkIn,
+                  builder: (context, checkIn) {
+                    return Text(DateFormat('dd MMM, kk:mm').format(checkIn));
+                  },
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    IconTile(
+                      icon: Icons.room,
+                      text: 'Crunch Fit Berlin-Wedding',
+                      iconColor: Color.fromRGBO(155, 155, 155, 1),
+                    ),
+                    Spacer(),
+                    Text(
+                      '(Wedding)',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+                const IconTile(
+                  icon: Icons.sell,
+                  text: 'Fitness',
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
