@@ -4,6 +4,7 @@ import 'package:urban_sports/timer/timer_cubit.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import './timer/ticker.dart';
+import 'bloc/checkin_data_bloc.dart';
 
 void main() {
   runApp(const App());
@@ -117,53 +118,61 @@ class _MemberInfoState extends State<MemberInfo> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          height: 300,
-          width: 300,
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Colors.black,
-              width: 2,
+    return BlocProvider(
+      create: (context) => CheckinDataBloc(),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            height: 300,
+            width: 300,
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.black,
+                width: 2,
+              ),
             ),
+            child: Center(
+                child: BlocConsumer(
+                    listener: (context, state) {},
+                    builder: (context, state) {
+                      return result == null
+                          ? QRView(
+                              key: qrKey,
+                              onQRViewCreated: _onQRViewCreated,
+                            )
+                          : Text(state?.url); //TODO: WHY STATE NOT WORKING
+                      //BLOC SEEMS UGLY AF, WILL DO https://pub.dev/packages/cubes
+                    })),
           ),
-          child: Center(
-              child: result == null
-                  ? QRView(
-                      key: qrKey,
-                      onQRViewCreated: _onQRViewCreated,
-                    )
-                  : Text(result!.code!)),
-        ),
-        BlocBuilder<TimerCubit, TimerState>(
-          builder: (context, state) {
-            return Timer(seconds: state.checkedInSeconds);
-          },
-        ),
-        const SizedBox(
-          height: 7,
-        ),
-        const Text(
-          'Hai Dang Bui',
-          style: TextStyle(
+          BlocBuilder<TimerCubit, TimerState>(
+            builder: (context, state) {
+              return Timer(seconds: state.checkedInSeconds);
+            },
+          ),
+          const SizedBox(
+            height: 7,
+          ),
+          const Text(
+            'Hai Dang Bui',
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 23,
+                fontWeight: FontWeight.w700,
+                fontFamily: 'Calibri'),
+          ),
+          const SizedBox(
+            height: 2,
+          ),
+          const Text(
+            'M Membership No: 529249000',
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 23,
-              fontWeight: FontWeight.w700,
-              fontFamily: 'Calibri'),
-        ),
-        const SizedBox(
-          height: 2,
-        ),
-        const Text(
-          'M Membership No: 529249000',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-          ),
-        )
-      ],
+              fontSize: 12,
+            ),
+          )
+        ],
+      ),
     );
   }
 
