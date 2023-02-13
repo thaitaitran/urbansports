@@ -1,17 +1,38 @@
-# urban_sports
+# UrbanSportsMock
 
-A new Flutter project.
+UrbanSports is a Flutter application that mocks the Urban Sport Club official app. The purpose of this project is to demonstrate the implementation of BLoC pattern for state management and QR-code reader with WebScraping in a Flutter app.
+
+## Features
+
+- BLoC pattern for state management
+- QR-code reader with WebScraping
+- Flutter UI design
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-A few resources to get you started if this is your first Flutter project:
+### Prerequisites
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Flutter
+- Dart
+- Android Studio or Visual Studio Code
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-# urbansports
+### Installing
+
+1. Clone the repository
+```
+git clone https://github.com/thaitaitran/urbansports.git
+```
+
+
+2. Change directory to the cloned repo
+```
+cd urbansports
+```
+
+3. Run the Flutter project
+```
+flutter run
+```
+
